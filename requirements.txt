@@ -13,3 +13,5 @@ ipykernel>=6.20
 
 # Utilities
 scipy>=1.9
+
+sklearn
