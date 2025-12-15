@@ -35,7 +35,7 @@ def get_sklearn_models(
         solver="saga",
         penalty="l2",
         C=1.0,
-        max_iter=500,
+        max_iter=50,
         n_jobs=-1,
         class_weight=class_weight,
         random_state=seed,
@@ -52,7 +52,7 @@ def get_sklearn_models(
 
     # 3) Random Forest
     models["random_forest"] = RandomForestClassifier(
-        n_estimators=400,
+        n_estimators=40,
         max_depth=None,
         min_samples_split=2,
         min_samples_leaf=1,
