@@ -35,7 +35,7 @@ def get_sklearn_models(
         solver="saga",
         penalty="l2",
         C=1.0,
-        max_iter=50,
+        max_iter=5,
         n_jobs=-1,
         class_weight=class_weight,
         random_state=seed,
@@ -43,7 +43,7 @@ def get_sklearn_models(
 
     # 2) Decision Tree
     models["decision_tree"] = DecisionTreeClassifier(
-        max_depth=None,
+        max_depth=10,
         min_samples_split=2,
         min_samples_leaf=1,
         class_weight=class_weight,
@@ -52,8 +52,8 @@ def get_sklearn_models(
 
     # 3) Random Forest
     models["random_forest"] = RandomForestClassifier(
-        n_estimators=40,
-        max_depth=None,
+        n_estimators=4,
+        max_depth=10,
         min_samples_split=2,
         min_samples_leaf=1,
         n_jobs=-1,
@@ -63,9 +63,9 @@ def get_sklearn_models(
 
     # 4) Gradient Boosting (100% sklearn)
     models["hist_gradient_boosting"] = HistGradientBoostingClassifier(
-        max_depth=None,
+        max_depth=10,
         learning_rate=0.08,
-        max_iter=400,
+        max_iter=4,
         random_state=seed,
     )
 

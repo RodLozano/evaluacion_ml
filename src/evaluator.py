@@ -186,10 +186,11 @@ def save_reports(
     cfg = cfg or EvalConfig()
     reports_dir, _, _ = _ensure_dirs(cfg)
 
-    # limpiamos claves internas
+    # limpiamos claves internas + payloads grandes (p.ej. y_proba/y_pred de Keras)
     cleaned = []
+    drop_keys = {"y_proba", "y_pred"}
     for r in results:
-        rr = {k: v for k, v in r.items() if not k.startswith("_")}
+        rr = {k: v for k, v in r.items() if (not k.startswith("_")) and (k not in drop_keys)}
         cleaned.append(rr)
 
     df = pd.DataFrame(cleaned).sort_values(by="roc_auc", ascending=False)

@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import List, Dict, Any
 
 # Datos
-from src.data_mger import get_data
+from src.data_mger import get_data, normalize_results
 
 # Preprocessing
 from src.preprocessing import build_preprocessor
@@ -95,16 +95,24 @@ def run_pipeline() -> None:
     results.append(keras_metrics)
     print(f"\n Modelo keras_mlp entrenado")
 
-    # 5) Guardar tabla de métricas + ROC comparativa (solo sklearn)
+    # INTRODUCIR AQUÍ LLAMADA A FUNCIÓN DE NORMALIZACIÓN 
+
+    # 5) Guardar tabla de métricas + ROC comparativa
     metrics_path = save_reports(results, filename="metrics.csv")
     print(f"\n Métricas guardadas en: {metrics_path}")
 
-    # ROC comparativa: solo modelos sklearn (los que tengan _fpr/_tpr)
-    roc_path = plot_roc_comparison(results, filename="roc_compare.png", title="ROC Comparison (sklearn models)")
+    # ROC comparativa
+    results_for_plots = normalize_results(results, y_true=y_test)
+
+    roc_path = plot_roc_comparison(
+        results_for_plots,
+        filename="roc_compare.png",
+        title="ROC Comparison (all models)"
+    )
     print(f" ROC comparativa guardada en: {roc_path}")
 
     # 6) Selección del mejor modelo sklearn y guardado
-    # Filtramos resultados que tengan _pipeline (solo sklearn)
+    # Filtramos resultados que tengan _pipeline
     sklearn_results = [r for r in results if "_pipeline" in r]
 
     best = select_best_model(
@@ -122,7 +130,6 @@ def run_pipeline() -> None:
     if "model_path" in keras_metrics:
         print("\n Modelo Keras guardado en:", keras_metrics["model_path"])
         print(" Nota: el 'best_model.joblib' es sklearn. Keras se usa como comparación.")
-
 
 def main() -> None:
     print("Iniciando pipeline de entrenamiento/evaluación...")

@@ -6,11 +6,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
+from sklearn.metrics import roc_curve, roc_auc_score
 
 # Si tienes src/config.py, intentamos usarlo; si no, ponemos defaults seguros.
 try:
@@ -193,3 +194,40 @@ def get_data(
     if save_processed:
         save_splits(splits, paths=paths, prefix=prefix)
     return splits
+
+def normalize_results(
+    results: list[dict],
+    y_true: pd.Series | np.ndarray,
+) -> list[dict]:
+    """Normaliza la salida de `results` para incluir modelos no-sklearn en plots.
+
+    Objetivo: que `plot_roc_comparison()` pueda pintar TODOS los modelos.
+
+    - No muta `results` (devuelve una lista nueva).
+    - Si un resultado ya trae `_fpr/_tpr`, se deja igual.
+    - Si trae `y_proba`, calcula `_fpr/_tpr/_auc` con `y_true`.
+    """
+    y_true_np = np.asarray(y_true).astype(int)
+
+    normalized: list[dict] = []
+    for r in results:
+        rr = dict(r)  # copia superficial
+
+        # Caso sklearn: ya viene listo para ROC
+        if "_fpr" in rr and "_tpr" in rr:
+            normalized.append(rr)
+            continue
+
+        # Caso Keras (u otros): tenemos probas y generamos ROC
+        if rr.get("y_proba", None) is not None:
+            y_proba = np.asarray(rr["y_proba"]).reshape(-1)
+            fpr, tpr, _ = roc_curve(y_true_np, y_proba)
+            auc = roc_auc_score(y_true_np, y_proba)
+
+            rr["_fpr"] = fpr
+            rr["_tpr"] = tpr
+            rr["_auc"] = float(auc)
+
+        normalized.append(rr)
+
+    return normalized
