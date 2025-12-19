@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Pipeline Run {{ run_id }}</title>
+    <link rel="stylesheet" href="{% static 'pipeline/pipeline.css' %}">
+</head>
+<body>
+
+<h1>Pipeline Run #{{ run_id }}</h1>
+
+<section class="controls" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+    <button id="start-btn">▶ Ejecutar pipeline</button>
+    <button id="refresh-btn">↻ Refrescar</button>
+    <span id="status" style="font-weight:700;"></span>
+    <span id="dataset" style="opacity:0.8;"></span>
+</section>
+
+<section class="console">
+    <h2>Logs</h2>
+    <pre id="log-console" style="max-height: 420px; overflow:auto;"></pre>
+</section>
+
+<section class="artifacts">
+    <h2>Artifacts</h2>
+    <ul id="artifacts-list"></ul>
+</section>
+
+<script>
+    const RUN_ID = {{ run_id }};
+</script>
+<script src="{% static 'pipeline/pipeline.js' %}"></script>
+<script>
+    PipelineRunDetail.init(RUN_ID);
+</script>
+
+</body>
+</html>

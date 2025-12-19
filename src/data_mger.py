@@ -3,7 +3,7 @@
 # src/data_mger.py
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple
 from typing import Any, Dict, List
@@ -23,15 +23,21 @@ except Exception:
     SEED = 42
     TEST_SIZE = 0.2
 
+# Data path dinámico para cuadrar funcionalidad con Django
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+def _resolve_dir(p: str | Path) -> Path:
+    pp = Path(str(p))
+    return pp if pp.is_absolute() else (_PROJECT_ROOT / pp).resolve()
 
 # Columnas con fuga de información típicas del dataset hotel bookings
 LEAKAGE_COLS = ["reservation_status", "reservation_status_date"]
 
-
 @dataclass(frozen=True)
 class DataPaths:
-    raw_dir: Path = Path(DATA_RAW_DIR)
-    processed_dir: Path = Path(DATA_PROCESSED_DIR)
+    raw_dir: Path = field(default_factory=lambda: _resolve_dir(DATA_RAW_DIR))
+    processed_dir: Path = field(default_factory=lambda: _resolve_dir(DATA_PROCESSED_DIR))
 
     def raw_file(self, filename: str) -> Path:
         return self.raw_dir / filename
@@ -195,31 +201,25 @@ def get_data(
         save_splits(splits, paths=paths, prefix=prefix)
     return splits
 
-def normalize_results(
-    results: list[dict],
-    y_true: pd.Series | np.ndarray,
-) -> list[dict]:
-    """Normaliza la salida de `results` para incluir modelos no-sklearn en plots.
-
-    Objetivo: que `plot_roc_comparison()` pueda pintar TODOS los modelos.
-
-    - No muta `results` (devuelve una lista nueva).
-    - Si un resultado ya trae `_fpr/_tpr`, se deja igual.
-    - Si trae `y_proba`, calcula `_fpr/_tpr/_auc` con `y_true`.
+def normalize_results(results: List[Dict[str, Any]], y_true) -> List[Dict[str, Any]]:
+    """
+    Devuelve una copia de results donde cualquier modelo con `y_proba` se completa
+    con `_fpr`, `_tpr`, `_auc` para que `plot_roc_comparison()` lo pueda dibujar.
+    No muta la lista original.
     """
     y_true_np = np.asarray(y_true).astype(int)
 
-    normalized: list[dict] = []
+    normalized: List[Dict[str, Any]] = []
     for r in results:
         rr = dict(r)  # copia superficial
 
-        # Caso sklearn: ya viene listo para ROC
+        # ya viene listo (sklearn)
         if "_fpr" in rr and "_tpr" in rr:
             normalized.append(rr)
             continue
 
-        # Caso Keras (u otros): tenemos probas y generamos ROC
-        if rr.get("y_proba", None) is not None:
+        # caso Keras u otros: si hay y_proba -> construimos ROC
+        if rr.get("y_proba") is not None:
             y_proba = np.asarray(rr["y_proba"]).reshape(-1)
             fpr, tpr, _ = roc_curve(y_true_np, y_proba)
             auc = roc_auc_score(y_true_np, y_proba)

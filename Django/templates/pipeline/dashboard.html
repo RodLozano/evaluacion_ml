@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ML Pipeline Dashboard</title>
+    <link rel="stylesheet" href="{% static 'pipeline/pipeline.css' %}">
+</head>
+<body>
+
+<h1>ML Pipeline</h1>
+
+<section class="create-run">
+    <h2>Nueva ejecución</h2>
+
+    <form id="create-run-form">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+            <input type="text" id="run-name" placeholder="Nombre de la ejecución (opcional)" style="min-width:260px;">
+
+            <select id="run-dataset" style="min-width:320px;">
+                <option value="">Cargando datasets...</option>
+            </select>
+
+            <button type="submit">Crear</button>
+        </div>
+
+        <p style="margin:10px 0 6px 0; font-size: 0.95em; opacity: 0.8;">
+            Config (JSON) opcional. Si no sabes qué poner, déjalo vacío.
+        </p>
+
+        <textarea
+            id="run-config"
+            placeholder='{"seed": 42, "metric_main": "roc_auc"}'
+            style="width: 100%; min-height: 90px;"
+        ></textarea>
+    </form>
+
+    <p id="create-run-msg" style="margin-top:10px;"></p>
+</section>
+
+<section class="runs">
+    <h2>Ejecuciones</h2>
+    <table id="runs-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Dataset</th>
+                <th>Estado</th>
+                <th>Creado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</section>
+
+<script src="{% static 'pipeline/pipeline.js' %}"></script>
+<script>
+    PipelineDashboard.init();
+</script>
+
+</body>
+</html>
